@@ -7,6 +7,10 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <list>
 #include <vector>
 #include <string>
 #include <memory>
@@ -34,6 +38,9 @@
 #include "scenegraph.h"
 #include "drawer.h"
 #include "picker.h"
+
+#include "sgutils.h"
+#include "interpolation.h"
 
 using namespace std;      // for string, vector, iostream, and other standard C++ stuff
 // If your OS is LINUX, uncomment the line below.
@@ -77,14 +84,14 @@ static int g_activeShader = 0;
 static const int PICKING_SHADER = 2; // index of the picking shader is g_shaerFiles
 static const int g_numShaders = 3; // 3 shaders
 static const char * const g_shaderFiles[g_numShaders][2] = {
-  {"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
-  {"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
-  {"./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"}
+  {"./binary/shaders/basic-gl3.vshader", "./binary/shaders/diffuse-gl3.fshader"},
+  {"./binary/shaders/basic-gl3.vshader", "./binary/shaders/solid-gl3.fshader"},
+  {"./binary/shaders/basic-gl3.vshader", "./binary/shaders/pick-gl3.fshader"}
 };
 static const char * const g_shaderFilesGl2[g_numShaders][2] = {
-  {"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
-  {"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
-  {"./shaders/basic-gl2.vshader", "./shaders/pick-gl2.fshader"}
+  {"./binary/shaders/basic-gl2.vshader", "./binary/shaders/diffuse-gl2.fshader"},
+  {"./binary/shaders/basic-gl2.vshader", "./binary/shaders/solid-gl2.fshader"},
+  {"./binary/shaders/basic-gl2.vshader", "./binary/shaders/pick-gl2.fshader"}
 };
 static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
 
@@ -165,7 +172,8 @@ static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode; // used later when you do picking
-
+static list<vector<RigTForm > > g_keyFrames = list<vector<RigTForm > >();
+static list<vector<RigTForm > >::iterator g_iterKeyFrames = g_keyFrames.begin();
 
 // --------- Scene
 
@@ -180,19 +188,16 @@ static RigTForm g_sphRbt = RigTForm(Cvec3(0,0,0));
 static double g_arcballScreenRadius = 128.0, g_arcballScale = 1.0;
 static bool g_isPicking = false;
 static bool g_isArcball = true;
-
+static string g_filename = "keyframes.txt";
+static int g_msBetweenKeyFrames = 2000; // Time interval between two keyframes
+static int g_animateFramesPerSecond = 60; // The number of frames rendered in 1 second
+static bool g_isAnimation = false;
 
 enum CAMERA_STATUS {
   SKY_CAMERA,
   CUBE1_CAMERA,
   CUBE2_CAMERA,
 };
-
-// enum MANIPULATION_STATUS {
-//   SKY_MANIPULATION,
-//   CUBE1_MANIPULATION,
-//   CUBE2_MANIPULATION,
-// };
 
 enum WORLDSKYFRAME_STATUS {
   WORLD_SKY,
@@ -213,6 +218,9 @@ static shared_ptr<SgRbtNode> eyeNode() {
   }
 }
 
+static void printCurrentKeyFrame() {
+  cout << "current: " << distance(g_keyFrames.begin(), g_iterKeyFrames) + 1 << ", total: " << g_keyFrames.size() << endl;
+}
 
 static void initGround() {
   // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
@@ -333,13 +341,6 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
       g_isArcball = false;
     }
   }
-  
-  // draw ground
-  // ===========
-  //
-
-  // draw cubes
-  // ==========
   
 }
 
@@ -464,18 +465,18 @@ static void motion(const int x, const int y) {
   if (g_mouseClickDown) {
     RigTForm a;
     if (g_isArcball) {
-      if (idxView == SKY_CAMERA && idxFrame == WORLD_SKY) { 
+      if (idxView == SKY_CAMERA && idxFrame == WORLD_SKY && (g_currentPickedRbtNode == shared_ptr<SgRbtNode>())) { 
           RigTForm orgRbt;
           a = makeMixedFrame(orgRbt, g_eyeRbt);
           tmp = doMtoOwrtA(inv(m), g_eyeRbt, a);
           eyeNode()->setRbt(tmp);
         }
-        else { // move the object
-          a = makeMixedFrame(getPathAccumRbt(g_world, g_currentPickedRbtNode), g_eyeRbt);
-          tmp = doMtoOwrtA(m, g_currentPickedRbtNode->getRbt(), inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * a);
-          g_currentPickedRbtNode->setRbt(tmp);
-        }
+      else { // move the object
+        a = makeMixedFrame(getPathAccumRbt(g_world, g_currentPickedRbtNode), g_eyeRbt);
+        tmp = doMtoOwrtA(m, g_currentPickedRbtNode->getRbt(), inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * a);
+        g_currentPickedRbtNode->setRbt(tmp);
       }
+    }
     else {
       // move the eye
       tmp = doMtoOwrtA(m, g_eyeRbt, g_eyeRbt);
@@ -511,8 +512,131 @@ static void mouse(const int button, const int state, const int x, const int y) {
   glutPostRedisplay(); // we always redraw if we changed the scene
 }
 
+void keyFrameToScenegraph(vector<RigTForm> keyframe) {
+  vector<shared_ptr<SgRbtNode> > keyToScene;
+  dumpSgRbtNodes(g_world, keyToScene);
+  assert(keyToScene.size() == keyframe.size());
+  for (int i = 0; i < keyToScene.size(); i++) {
+    keyToScene[i]->setRbt(keyframe[i]);
+  }
+  return;
+}
+
+vector<RigTForm> sceneGraphToKeyFrame() {
+  vector<RigTForm> keyFrame = vector<RigTForm>();
+  vector<shared_ptr<SgRbtNode> > curScene = vector<shared_ptr<SgRbtNode> >();
+  dumpSgRbtNodes(g_world, curScene);
+  for (int i = 0; i < curScene.size(); i++) {
+    keyFrame.push_back(curScene[i]->getRbt());
+  }
+  return keyFrame;
+}
+
+// load keyframes from input
+static void inputKeyFrames() {
+  string line, element_str;
+  std::ifstream inputFile(g_filename.c_str());
+
+  if (!inputFile.is_open()) {
+      cerr << "Error: Unable to open file " << g_filename << endl;
+  }
+
+  getline(inputFile, line);
+  int numKeyFrames = stoi(line); // Read the total number of key frames
+  cout << "Total frame: " << numKeyFrames << endl;
+  
+  for (int k = 0; k < numKeyFrames; ++k) {
+    vector<RigTForm> newKeyFrame;
+    
+    while (getline(inputFile, line)) {
+      if (line == "end") {
+        g_keyFrames.push_back(newKeyFrame); // Add the key frame to the list
+        newKeyFrame.clear();
+        break; // End of this key frame
+      }
+
+      istringstream iss(line);
+      vector<double> elements(7);
+      for (int i = 0; i < 7; ++i) {
+        (i == 6) ? getline(iss, element_str, '\n') : getline(iss, element_str, ',');
+        elements[i] = stod(element_str); // Read translation and rotation elements
+      }
+      // Create RigTForm from translation and rotation elements
+      Cvec3 translation(elements[0], elements[1], elements[2]);
+      Quat rotation(elements[3], elements[4], elements[5], elements[6]);
+      newKeyFrame.push_back(RigTForm(translation, rotation));
+    }
+  }
+
+  inputFile.close();
+}
+
+static bool interpolateAndDisplay(float t) {
+  if (t >= g_keyFrames.size() - 3) {
+    cout << "end of frames!!!" << endl;
+    return true;
+  }
+  else {
+    float alpha = t - floor(t);
+    int frameIdx = floor(t);
+
+    list<vector<RigTForm> >::iterator iter = g_keyFrames.begin();
+    for (int i = -1; i < frameIdx; i++) {
+        iter++;
+    }
+    iter--;
+    vector<RigTForm> frame0 = *iter;
+    iter++;
+    vector<RigTForm> frame1 = *iter;
+    iter++;
+    vector<RigTForm> frame2 = *iter;
+    iter++;
+    vector<RigTForm> frame3 = *iter;
+
+    /// make interpolation frame
+    vector<RigTForm> interpKeyFrame = vector<RigTForm>();
+    for (int i = 0; i < frame1.size(); i++) {
+      // RigTForm interpFrame = Interpolation::Linear(frame1[i], frame2[i], alpha);
+      RigTForm interpFrame = Interpolation::CatmullRom(frame0[i], frame1[i], frame2[i], frame3[i], alpha);
+      interpKeyFrame.push_back(interpFrame);
+    }
+
+    // move the interpolated KeyFrame to Scene Graph
+    keyFrameToScenegraph(interpKeyFrame);
+    glutPostRedisplay();
+
+    return false;
+  }
+}
+
+static void animateTimerCallback(int ms) {
+  if (!g_isAnimation) {
+    return;
+  }
+  float t = (float)ms/(float)g_msBetweenKeyFrames;
+  bool endReached = interpolateAndDisplay(t);
+
+  if (!endReached) 
+    // ? time_ms: time to call function (2nd parameter)
+    // ? timerCallback: function to call
+    // ? value: argument for the callback function (2nd parameter)
+    glutTimerFunc(1000 / g_animateFramesPerSecond,
+                  animateTimerCallback,
+                  ms + 1000 / g_animateFramesPerSecond);
+  else {
+    // After the animation is finished,
+    // set the current key frameas ??1 ?h keyframe among [?1, ?] keyframes.
+    cout << "finished the animation" << endl;
+    g_isAnimation = false;
+  }
+}
 
 static void keyboard(const unsigned char key, const int x, const int y) {
+  list<vector<RigTForm> >::iterator tmp_iter = g_iterKeyFrames;
+  vector<shared_ptr<SgRbtNode> > toScene;
+  vector<shared_ptr<SgRbtNode> > curScene;
+  vector<RigTForm> keyFrame;
+
   switch (key) {
   case 27:
     exit(0);                                  // ESC
@@ -562,9 +686,190 @@ static void keyboard(const unsigned char key, const int x, const int y) {
     g_isPicking = true;
     cout << "Picking" << endl;
     break;
+  case 32: // display the current key frame
+    // Copy current key frame RBT data to the scene graph 
+    // if the current key frame is defined
+    if (g_keyFrames.empty()) {
+      cout << "current key frame is not defined" << endl;
+    }
+    else {
+      cout << "Copy current key frame RBT data to the scene graph " << endl;
+      
+      // Key Frame to Scene Graph
+      keyFrameToScenegraph(*g_iterKeyFrames);
+    }
+    break;
+  case 'u': // update
+    // Copy the scene graph RBT data to the current key frame
+    // if the current key frame is defined
+    if (g_keyFrames.empty()) {
+      cout << "current key frame is not defined" << endl;
+    }
+    else {
+      // Scene Graph RBT data to current keyframe
+      *g_iterKeyFrames = sceneGraphToKeyFrame();
+    }
+    printCurrentKeyFrame();
+    break;
+  case '>':
+    // advance to next key frame (if possible)
+    // Then copy current key frame data to the scene graph.
+    if (g_keyFrames.empty()) {
+      cout << "current key frame is not defined" << endl;
+    }
+    else {
+      if (g_keyFrames.end() == ++tmp_iter) {
+        cout << "current key frame is at last" << endl;
+        --tmp_iter;
+      }
+      else {
+        ++g_iterKeyFrames;
+      }
+      // Key Frame to Scene Graph
+      keyFrameToScenegraph(*g_iterKeyFrames);
+    }
+    printCurrentKeyFrame();
+    break;
+  case '<':
+    // retreat to previous key frame (if possible)
+    // Then copy current key frame data to the scene graph.
+    if (g_keyFrames.empty()) {
+      cout << "current key frame is not defined" << endl;
+    }
+    else {
+      if (g_keyFrames.begin() == g_iterKeyFrames) {
+        cout << "current key frame is at first" << endl;
+      }
+      else {
+        g_iterKeyFrames--;
+      }
+      // Key Frame to Scene Graph
+      keyFrameToScenegraph(*g_iterKeyFrames);
+    }
+    printCurrentKeyFrame();
+    break;
+  case 'd':
+    // delete the current key frame and do the following
+      // If the list of frames is empty after the deletion, set the current key frame to undefined.
+      // Otherwise
+        // ? If the deleted frame is not the first frame, set the current frame to the frame immediately before the deleted frame
+        // ? Else set the current frame to the frame immediately after the deleted frame
+        // ? Copy RBT data from the new current frame to the scene graph.
+    if (g_keyFrames.empty()) {
+      cout << "current key frame is not defined" << endl;
+    }
+    else {
+      if (g_keyFrames.size() == 1) { // size 1
+        cout << "delete the only key frame" << endl;
+        g_keyFrames.erase(g_iterKeyFrames);
+        g_iterKeyFrames = g_keyFrames.begin();
+      }
+      else {
+        cout << "delete the current key frame" << endl;
+        tmp_iter = g_iterKeyFrames;
+        ++tmp_iter;
+        g_keyFrames.erase(g_iterKeyFrames);
+        g_iterKeyFrames = tmp_iter;
+      }
+      if (g_keyFrames.end() == g_iterKeyFrames) {
+        --g_iterKeyFrames;
+        --tmp_iter;
+      }
+      if (!g_keyFrames.empty()) {
+        // Key Frame to Scene Graph
+        keyFrameToScenegraph(*g_iterKeyFrames);
+      }
+    }
+    printCurrentKeyFrame();
+    break;
+  case 'n':
+    // create a new key frame immediately after current key frame
+    // if the current key frame is not defined, just create a new key frame
+    // Copy scene graph RBT data to the new key frame. Set the current key frame to the newly created key frame
+    
+    keyFrame = sceneGraphToKeyFrame(); // Scene Graph RBT data to keyframe
+    g_keyFrames.insert(++tmp_iter, keyFrame);
+
+    if (g_keyFrames.size() == 1) {
+      cout << "create a new key frame" << endl;
+      g_iterKeyFrames--;
+    }
+    else {
+      cout << "add a new key frame" << endl;
+      g_iterKeyFrames++;
+    }
+    printCurrentKeyFrame();
+    break;
+  case '+':
+    g_msBetweenKeyFrames -= 100;
+    cout << g_msBetweenKeyFrames << endl;
+    break;
+  case '-':
+    g_msBetweenKeyFrames += 100;
+    cout << g_msBetweenKeyFrames << endl;
+    break;
+  case 'y':
+    if (!g_isAnimation) {
+      if (g_keyFrames.size() < 4) {
+        cout << "need at least 4 frames" << endl;
+      }
+      else {
+        cout << "start the animation" << endl;
+        g_isAnimation = true;
+        animateTimerCallback(0);
+      }
+    }
+    else {
+      cout << "stop the animation" << endl;
+      g_isAnimation = false;
+    }
+    break;
+  case 'i':
+    // input key frames from input file
+    cout << "input file: keyframes.txt" << endl;
+    g_keyFrames.clear();
+    
+    inputKeyFrames();
+    
+    g_iterKeyFrames = tmp_iter = g_keyFrames.begin();
+
+    printCurrentKeyFrame();
+    break;
+  case 'w':
+    // output key frames from output file
+    // Set current key frame to the first frame. 
+    // Copy this frame to the scene graph
+    cout << "output file: keyframes.txt" << endl;
+    std::ofstream outputFile(g_filename.c_str());
+    if (!outputFile.is_open()) {
+        cerr << "Error: Unable to open file " << g_filename << endl;
+        break;
+    }
+
+    outputFile << g_keyFrames.size() << endl;
+    for (const auto& keyFrame : g_keyFrames) {
+      for (const auto& rbt : keyFrame) {
+          Cvec3 trans = rbt.getTranslation();
+          Quat rot = rbt.getRotation();
+          for (int i = 0; i < 3; i++) {
+            outputFile << trans[i] << ",";
+          }
+          for (int i = 0; i < 3; i++) {
+            outputFile << rot[i] << ",";
+          }
+          outputFile << rot[3] << endl;
+      }
+      outputFile << "end" << endl;
+    }
+    // Key Frame to Scene Graph
+    keyFrameToScenegraph(*g_iterKeyFrames);
+    cout << "total: " << g_keyFrames.size() << endl;
+    break;
   }
   glutPostRedisplay();
 }
+
+
 
 static void initGlutState(int argc, char * argv[]) {
   glutInit(&argc, argv);                                  // initialize Glut based on cmd-line args
@@ -609,15 +914,15 @@ static void initGeometry() {
   initSpheres();
 }
 
-static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color) {
+static void constructAirplane(shared_ptr<SgTransformNode> base, const Cvec3& color) {
   const double ARM_LEN = 0.7,
                ARM_THICK = 0.25,
                TORSO_LEN = 1.5,
                TORSO_THICK = 0.25,
                TORSO_WIDTH = 1,
                HEAD_RADIUS = 0.5;
-  const int NUM_JOINTS = 10,
-            NUM_SHAPES = 10;
+  const int NUM_JOINTS = 3,
+            NUM_SHAPES = 3;
 
   struct JointDesc {
     int parent;
@@ -626,15 +931,8 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
 
   JointDesc jointDesc[NUM_JOINTS] = {
     {-1}, // torso
-    {0,  TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper right arm
-    {1,  ARM_LEN, 0, 0}, // lower right arm
-    {0,  -TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper right arm
-    {3,  -ARM_LEN, 0, 0}, // lower right arm
-    {0, (TORSO_WIDTH) / 4, -(TORSO_LEN / 2), 0}, // upper right leg
-    {5, 0, -ARM_LEN, 0},  // lower right leg
-    {0, -(TORSO_WIDTH) / 4, -(TORSO_LEN / 2), 0},    // upper left leg
-    {7, 0, -ARM_LEN, 0},        // lower left leg
-    {0, 0, (TORSO_LEN / 2), 0}  // head
+    {0,  0, 0, 0}, // upper right arm
+    {0, -TORSO_WIDTH-2, 0, 0} // tail
   };
 
   struct ShapeDesc {
@@ -644,17 +942,11 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
   };
 
   ShapeDesc shapeDesc[NUM_SHAPES] = {
-    {0, 0,         0, 0, TORSO_WIDTH, TORSO_LEN, TORSO_THICK, g_cube}, // torso
-    {1, ARM_LEN/2, 0, 0, ARM_LEN / 2, ARM_THICK / 2, ARM_THICK / 2, g_sphere}, // upper right arm
-    {2, ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // lower right arm
-    {3, -ARM_LEN/2, 0, 0, ARM_LEN / 2, ARM_THICK / 2, ARM_THICK / 2, g_sphere}, // upper left arm
-    {4, -ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // lower left arm
-    {5, 0, -ARM_LEN/2, 0, ARM_THICK / 2, ARM_LEN / 2, ARM_THICK / 2, g_sphere}, // upper right arm
-    {6, 0, -ARM_LEN/2, 0, ARM_THICK, ARM_LEN, ARM_THICK, g_cube}, // lower right arm
-    {7, 0, -ARM_LEN/2, 0, ARM_THICK / 2, ARM_LEN / 2, ARM_THICK / 2, g_sphere}, // upper right arm
-    {8, 0, -ARM_LEN/2, 0, ARM_THICK, ARM_LEN, ARM_THICK, g_cube}, // lower right arm
-    {9, 0, HEAD_RADIUS, 0, HEAD_RADIUS, HEAD_RADIUS, HEAD_RADIUS, g_sphere},
+    {0, 0, 0, 0, TORSO_WIDTH+3, TORSO_LEN-1.2, TORSO_THICK+1, g_cube}, // body
+    {1, 0.5, 0, 0, ARM_LEN*2, ARM_THICK+0.6, ARM_THICK+5, g_cube}, // wings
+    {2, ARM_LEN*2-0.5, 0, 0, ARM_LEN, ARM_THICK+1, ARM_THICK+2, g_cube} // tail
   };
+  
 
   shared_ptr<SgTransformNode> jointNodes[NUM_JOINTS];
 
@@ -680,7 +972,7 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
 static void initScene() {
   g_world.reset(new SgRootNode());
 
-  g_skyNode.reset(new SgRbtNode(RigTForm(Cvec3(0.0, 0.25, 4.0))));
+  g_skyNode.reset(new SgRbtNode(RigTForm(Cvec3(0.0, 0.25, 10.0))));
 
   g_groundNode.reset(new SgRbtNode());
   g_groundNode->addChild(shared_ptr<MyShapeNode>(
@@ -689,8 +981,8 @@ static void initScene() {
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
 
-  constructRobot(g_robot1Node, Cvec3(1, 0, 0)); // a Red robot
-  constructRobot(g_robot2Node, Cvec3(0, 0, 1)); // a Blue robot
+  constructAirplane(g_robot1Node, Cvec3(1, 0, 0)); // a Red robot
+  // constructAirplane(g_robot2Node, Cvec3(0, 0, 1)); // a Blue robot
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
