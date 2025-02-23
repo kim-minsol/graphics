@@ -87,12 +87,15 @@ $$
 
 최종적으로 위 Figure에서의 v가 vertex가 되게 합니다. 앞의 두 과정은 새로운 정점을 생성했다면, vertex rules에서는 기존 정점들을 update합니다.
 - $n_{v}$ vertices와 모두 연결되어 있습니다.
-- $n_v$ faces $f_j$에 둘러 쌓여 있습니다.
+- $n_v$ faces $f_j$에 둘러 쌓여 있습니다.   
+
 
 
 $$
 v_{v}=\frac{n_{v}-2}{n_{v}}v+ \frac{1}{n^{2}_{v}}\sum\limits_{j}v_{j}+ \frac{1}{n^{2}_{v}}\sum\limits_{j}v_{f_{j}}
 $$
+
+
 
 
 따라서, $M^{i+1}$의 새로운 vertex-vertex는 위와 같이 설정합니다. 
