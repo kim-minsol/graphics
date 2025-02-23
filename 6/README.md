@@ -120,7 +120,10 @@ $c'(t)=\frac{1}{2}(c_{i+1}-c_{i-1})$의 기울기와 $d_{i}$에 해당하는 점
 
 $$
 \begin{aligned}
-d_{i}&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_{i} \\
+d_{i}&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_{i} 
+
+\\
+
 e_{i}&=((c_{i+2}c_{i}^{-1})^{\frac{-1}{6}})c_{i+1}
 \end{aligned}
 $$   
@@ -163,18 +166,16 @@ Quaternion은 4개의 실수로 구성된 벡터입니다. 또한, axis $\hat{\m
 ### Multiplication by a scalar   
 
 $$
-\alpha\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix} = \begin{bmatrix} \alpha\cos(\frac{\theta}{2})\\ \alpha\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
+\alpha\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix} = \begin{bmatrix} \alpha\cos(\frac{\theta}{2}) \\ \alpha\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
 $$   
 
 
 ### Multiplication between two quaternions   
 
-$$
-\begin{bmatrix} w_{1}\\\hat{\mathbf{c}}_{1} \end{bmatrix}\begin{bmatrix} w_{2}\\\hat{\mathbf{c}}_{2} \end{bmatrix} = \begin{bmatrix} (w_{1}w_{2}-\hat{\mathbf{c}}_{1}\cdot\hat{\mathbf{c}}_{2})\\w_{1}\hat{\mathbf{c}}_{2}+w_{2}\hat{\mathbf{c}}_{1}+\hat{\mathbf{c}}_{1}\times \hat{\mathbf{c}}_{2} \end{bmatrix}
-$$   
+$$\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}\begin{bmatrix} w_{2} \\ \hat{\mathbf{c}}_{2} \end{bmatrix} = \begin{bmatrix} (w_{1}w_{2}-\hat{\mathbf{c}}_{1}\cdot\hat{\mathbf{c}}_{2}) \\ w_{1}\hat{\mathbf{c}}_{2} + w_{2} \hat{\mathbf{c}}_{1} + \hat{\mathbf{c}}_{1}\times \hat{\mathbf{c}}_{2} \end{bmatrix}$$   
 
 
-$\begin{bmatrix} w_{1}\\\hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix $R_1$을 표현한다고 가정하였을 때, 두 quaternion의 곱은 $R_{1}R_{2}$가 되는 특징으로 나타낼 수 있습니다.
+$\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix $R_1$을 표현한다고 가정하였을 때, 두 quaternion의 곱은 $R_{1}R_{2}$가 되는 특징으로 나타낼 수 있습니다.
 ![Gyiv9Us.png](https://i.imgur.com/Gyiv9Us.png)   
 
 Quaternion의 vector 부분에 해당하는 i, j, k에 대한 곱 테이블입니다. 
