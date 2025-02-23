@@ -8,6 +8,10 @@ Last Update: May. 8, 2023 by Eunji Hong (hong969@kaist.ac.kr)
 ### Contents Writer
 Minsol Kim (rlaalsthf02@naver.com)
 
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
 # Keyframe List
 이번 포스트는 Keyframe을 interpolation하여 animation을 제작하는 과정을 담았습니다. 
 
@@ -176,15 +180,23 @@ $$
 ```math
 \begin{bmatrix} w_1 \\ \hat{\mathbf{c}}_1 \end{bmatrix}\begin{bmatrix} w_2 \\ \hat{\mathbf{c}}_2 \end{bmatrix} = \begin{bmatrix} (w_1w_2-\hat{\mathbf{c}}_1 \cdot \hat{\mathbf{c}}_2) \\ w_1 \hat{\mathbf{c}}_2 + w_2 \hat{\mathbf{c}}_1 + \hat{\mathbf{c}}_1 \times \hat{\mathbf{c}}_2 \end{bmatrix}
 ```   
+<br>
+<br/>
 
+$\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix $R_1$을 표현한다고 가정하였을 때, 두 quaternion의 곱은 $R_{1}R_{2}$가 되는 특징으로 나타낼 수 있습니다.   
 
-$\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix $R_1$을 표현한다고 가정하였을 때, 두 quaternion의 곱은 $R_{1}R_{2}$가 되는 특징으로 나타낼 수 있습니다.
 ![Gyiv9Us.png](https://i.imgur.com/Gyiv9Us.png)   
+
+<br>
+<br/>
 
 Quaternion의 vector 부분에 해당하는 i, j, k에 대한 곱 테이블입니다. 
 ![](https://i.imgur.com/gHpVECf.png)   
 
-곱 테이블을 이용해서 두 사원수의 곱을 naive하게 계산하면 다음과 같고, 이를 간단하게 표현하면 $\begin{bmatrix} (w_1w_2-\hat{\mathbf{c}}_1\cdot\hat{\mathbf{c}}_2) \\ w_1\hat{\mathbf{c}}_2 + w_2\hat{\mathbf{c}}_1+\hat{\mathbf{c}}_1 \times \hat{\mathbf{c}}_2 \end{bmatrix}$가 됩니다.
+<br>
+<br/>
+
+곱 테이블을 이용해서 두 사원수의 곱을 naive하게 계산하면 다음과 같고, 이를 간단하게 표현하면 $\begin{bmatrix} (w_1w_2-\hat{\mathbf{c}}_1\cdot\hat{\mathbf{c}}_2) \\ w_1\hat{\mathbf{c}}_2 + w_2\hat{\mathbf{c}}_1+\hat{\mathbf{c}}_1 \times \hat{\mathbf{c}}_2 \end{bmatrix}$가 됩니다.   
 
 ### Multiplicative inverse   
 
