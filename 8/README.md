@@ -57,8 +57,7 @@ watertight mesh $M^0$으로 시작하여 $M^1$으로 개선해가는 방식입�
 ### Geometry rules
 ![](https://i.imgur.com/WqYiEqk.png)
 
-$M^i$에서의 face $f$가 vertices $v_{j}$에 둘러 쌓여 있을 때, 우리는 새로운 face-vertex $v_f$
-를 아래의 식으로 생성합니다.
+$M^i$에서의 face $f$가 vertices $v_{j}$에 둘러 쌓여 있을 때, 우리는 새로운 face-vertex $v_f$를 아래의 식으로 생성합니다.
 
 
 $$
@@ -104,5 +103,5 @@ subdivision 과정을 $i \ge 1$에 대해 재귀적으로 반복합니다. 새�
 
 
 # Reference 
-[1] https://mhsung.github.io/kaist-cs380-spring-2023/
+[1] https://mhsung.github.io/kaist-cs380-spring-2023/   
 [2] Steven J. Gortler, [Foundations of 3D Computer Graphics](https://mitpress.mit.edu/9780262017350/foundations-of-3d-computer-graphics/)
