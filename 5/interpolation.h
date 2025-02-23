@@ -37,36 +37,6 @@ namespace Interpolation {
 			result = result * q0;
 		}
         return result;
-		// Quat q = q1 * inv(q0);
-		// if (q[0]< 0) {
-		// 	q = q * -1;
-		// }
-		// Quat qq1 = Quat();
-		// double dotProduct = dot(q0, q1);
-		// if (dotProduct < 0.0) {
-		// 	qq1[0] = -q1[0];
-		// 	qq1[1] = -q1[1];
-		// 	qq1[2] = -q1[2];
-		// 	qq1[3] = -q1[3];
-		// 	dotProduct = -dotProduct;
-		// }
-
-		// //float p = atan2(sqrt(pow(q[1], 2) + pow(q[2], 2) + pow(q[3], 2)), q[0]);
-
-		// double theta_0 = atan2(sqrt(pow(q[1], 2) + pow(q[2], 2) + pow(q[3], 2)), q[0]); // 초기 각도
-		// double theta = theta_0 * alpha;             // 보간된 각도
-		// double sin_theta = sin(theta);
-		// double sin_theta_0 = sin(theta_0);
-
-		// double s1 = cos(theta) - dotProduct * sin_theta / sin_theta_0;
-		// double s2 = sin_theta / sin_theta_0;
-
-		// return Quat(
-		// 	s1 * q0[0] + s2 * qq1[0],
-		// 	s1 * q0[1] + s2 * qq1[1],
-		// 	s1 * q0[2] + s2 * qq1[2],
-		// 	s1 * q0[3] + s2 * qq1[3]
-		// );
 	}
 
 	// Linear interpolation of two RigTForms
