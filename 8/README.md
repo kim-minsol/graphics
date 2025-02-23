@@ -90,15 +90,14 @@ $$
 - $n_v$ faces $f_j$에 둘러 쌓여 있습니다.   
 
 
+따라서, $M^{i+1}$의 새로운 vertex-vertex는 아래와 같이 설정합니다. 
+
 
 $$
 v_{v}=\frac{n_{v}-2}{n_{v}}v+ \frac{1}{n^{2}_{v}}\sum\limits_{j}v_{j}+ \frac{1}{n^{2}_{v}}\sum\limits_{j}v_{f_{j}}
 $$
 
 
-
-
-따라서, $M^{i+1}$의 새로운 vertex-vertex는 위와 같이 설정합니다. 
 
 ## Recursive subdivision
 subdivision 과정을 $i \ge 1$에 대해 재귀적으로 반복합니다. 새로운 mesh가 생성되면 대략 4배의 vertex 수가 증가하는 것이 됩니다. subdivision을 반복할수록, 더 많은 mesh가 rectilinear하게 됩니다 --- extraordinary points는 이때 고정됩니다.
