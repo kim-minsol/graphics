@@ -123,9 +123,9 @@ $c'(t)=\frac{1}{2}(c_{i+1}-c_{i-1})$의 기울기와 $d_{i}$에 해당하는 점
 
 $$
 \begin{aligned}
-d_{i}&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_{i} \\ 
+d_i&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_i \\ 
 
-e_{i}&=((c_{i+2}c_{i}^{-1})^{\frac{-1}{6}})c_{i+1}
+e_i&=((c_{i+2}c_i^{-1})^{\frac{-1}{6}})c_{i+1}
 \end{aligned}
 $$   
 
@@ -173,7 +173,9 @@ $$
 
 ### Multiplication between two quaternions   
 
-$$\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}\begin{bmatrix} w_{2} \\ \hat{\mathbf{c}}_{2} \end{bmatrix} = \begin{bmatrix} (w_{1}w_{2}-\hat{\mathbf{c}}_{1}\cdot\hat{\mathbf{c}}_{2}) \\ w_{1}\hat{\mathbf{c}}_{2} + w_{2} \hat{\mathbf{c}}_{1} + \hat{\mathbf{c}}_{1}\times \hat{\mathbf{c}}_{2} \end{bmatrix}$$   
+```math
+\begin{bmatrix} w_1 \\ \hat{\mathbf{c}}_1 \end{bmatrix}\begin{bmatrix} w_2 \\ \hat{\mathbf{c}}_2 \end{bmatrix} = \begin{bmatrix} (w_1w_2-\hat{\mathbf{c}}_1 \cdot \hat{\mathbf{c}}_2) \\ w_1 \hat{\mathbf{c}}_2 + w_2 \hat{\mathbf{c}}_1 + \hat{\mathbf{c}}_1 \times \hat{\mathbf{c}}_2 \end{bmatrix}
+```   
 
 
 $\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix $R_1$을 표현한다고 가정하였을 때, 두 quaternion의 곱은 $R_{1}R_{2}$가 되는 특징으로 나타낼 수 있습니다.
@@ -182,12 +184,12 @@ $\begin{bmatrix} w_{1} \\ \hat{\mathbf{c}}_{1} \end{bmatrix}$가 rotation matrix
 Quaternion의 vector 부분에 해당하는 i, j, k에 대한 곱 테이블입니다. 
 ![](https://i.imgur.com/gHpVECf.png)   
 
-곱 테이블을 이용해서 두 사원수의 곱을 naive하게 계산하면 다음과 같고, 이를 간단하게 표현하면 $\begin{bmatrix} (w_{1}w_{2}-\hat{\mathbf{c}}_{1}\cdot\hat{\mathbf{c}}_{2})\\w_{1}\hat{\mathbf{c}}_{2}+w_{2}\hat{\mathbf{c}}_{1}+\hat{\mathbf{c}}_{1}\times \hat{\mathbf{c}}_{2} \end{bmatrix}$가 됩니다.
+곱 테이블을 이용해서 두 사원수의 곱을 naive하게 계산하면 다음과 같고, 이를 간단하게 표현하면 $\begin{bmatrix} (w_1w_2-\hat{\mathbf{c}}_1\cdot\hat{\mathbf{c}}_2) \\ w_1\hat{\mathbf{c}}_2 + w_2\hat{\mathbf{c}}_1+\hat{\mathbf{c}}_1 \times \hat{\mathbf{c}}_2 \end{bmatrix}$가 됩니다.
 
 ### Multiplicative inverse   
 
 $$
-\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}^{-1} = \begin{bmatrix} \cos(\frac{\theta}{2})\\ -\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
+\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}^{-1} = \begin{bmatrix} \cos(\frac{\theta}{2}) \\ -\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
 $$   
 
 inverse 연산은 단순히 같은 축에서 $-\theta$로 회전하는 것이 됩니다.
@@ -197,9 +199,9 @@ quaternion angle을 계산할 때, arccos, arcsin만으로는 정확한 각도�
 
 ### Power   
 
-$$
-\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}^{\alpha} = \begin{bmatrix} \cos(\frac{\alpha\theta}{2})\\ \sin(\frac{\alpha\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
-$$   
+```math
+\begin{bmatrix} \cos(\frac{\theta}{2})\\\sin(\frac{\theta}{2})\hat{\mathbf{k}} \end{bmatrix}^{\alpha} = \begin{bmatrix} \cos(\frac{\alpha\theta}{2}) \\ \sin(\frac{\alpha\theta}{2})\hat{\mathbf{k}} \end{bmatrix}
+```   
 
 단위 축 $\hat{\mathbf{k}}$를 사원수로부터 추출한 후, arctan로 $\theta$를 추출합니다. 이후 $\alpha$를 곱하는 것으로 quaternion의 급수 연산을 구현할 수 있습니다.
 
