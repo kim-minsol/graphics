@@ -8,10 +8,6 @@ Last Update: May. 8, 2023 by Eunji Hong (hong969@kaist.ac.kr)
 ### Contents Writer
 Minsol Kim (rlaalsthf02@naver.com)
 
-<script type="text/javascript" async
-  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
-</script>
-
 # Keyframe List
 이번 포스트는 Keyframe을 interpolation하여 animation을 제작하는 과정을 담았습니다. 
 
