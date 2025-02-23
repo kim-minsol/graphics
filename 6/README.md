@@ -60,9 +60,9 @@ $$
 ## Quaternion method
 $$
 \frac{\sin((1-\alpha)\Omega)}{\sin(\Omega)} 
-\overrightarrow{v}_{0} + 
+\overrightarrow{v}_0 + 
 \frac{\sin(\alpha\Omega)}{\sin(\Omega)} 
-\overrightarrow{v}_{1}
+\overrightarrow{v}_1
 $$   
 
 
@@ -123,9 +123,7 @@ $c'(t)=\frac{1}{2}(c_{i+1}-c_{i-1})$의 기울기와 $d_{i}$에 해당하는 점
 
 $$
 \begin{aligned}
-d_{i}&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_{i} 
-
-\\
+d_{i}&=((c_{i+1}c^{-1}_{i-1})^{\frac{1}{6}})c_{i} \\ 
 
 e_{i}&=((c_{i+2}c_{i}^{-1})^{\frac{-1}{6}})c_{i+1}
 \end{aligned}
@@ -143,7 +141,7 @@ orientation에 대해 interpolation을 적용할 때, $x,y,z$에 대해 위의 �
 # Quaternions   
 
 $$
-R = \begin{bmatrix} r  & 0\\ 0 & 1\end{bmatrix}
+R = \begin{bmatrix} r  & 0 \\ 0 & 1\end{bmatrix}
 $$   
 
 rotation matrix는 위와 같이 표현할 수 있으며, $[x,y,z]$에 대해 $\theta$ 각도로 회전시키는 행렬을 나타냅니다.   
