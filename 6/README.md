@@ -59,7 +59,10 @@ $$
 
 ## Quaternion method
 $$
-\frac{\sin((1-\alpha)\Omega)}{\sin(\Omega)} \overrightarrow{v}_{0} + \frac{\sin(\alpha\Omega)}{\sin(\Omega)} \overrightarrow{v}_{1}
+\frac{\sin((1-\alpha)\Omega)}{\sin(\Omega)} 
+\overrightarrow{v}_{0} + 
+\frac{\sin(\alpha\Omega)}{\sin(\Omega)} 
+\overrightarrow{v}_{1}
 $$   
 
 
