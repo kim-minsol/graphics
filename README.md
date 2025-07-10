@@ -15,5 +15,5 @@
 | 4 | Hierarchical Transformations and Picking |  | https://velog.io/@rlaalsthf02/OpenGL-2 |
 | 5 | Keyframe Animation: Part I |  |  https://velog.io/@rlaalsthf02/OpenGL3 |
 | 6 | Keyframe Animation: Part II |  |  https://velog.io/@rlaalsthf02/OpenGL3 |
-| 7 | Materials and Bump Mapping |  |   |
-| 8 | Meshes and Subdivision Surfaces |  |   |
+| 7 | Materials and Bump Mapping |  |  https://velog.io/@rlaalsthf02/OpenGL4 |
+| 8 | Meshes and Subdivision Surfaces |  |  https://velog.io/@rlaalsthf02/OpenGL4 |
